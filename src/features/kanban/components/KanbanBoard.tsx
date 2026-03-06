@@ -1,0 +1,57 @@
+"use client";
+
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import { KanbanColumn } from "./KanbanColumn";
+import type { Quest } from "@/features/quests/types";
+import { KANBAN_COLUMNS, QUEST_STATUS_LABELS } from "@/shared/lib/constants";
+import type { QuestStatus } from "@/shared/lib/constants";
+
+interface KanbanBoardProps {
+  quests: Quest[];
+  onMoveQuest: (questId: string, newStatus: QuestStatus) => void;
+}
+
+export function KanbanBoard({ quests, onMoveQuest }: KanbanBoardProps) {
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
+  );
+
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (!over) return;
+
+    const questId = active.id as string;
+    const newStatus = over.id as QuestStatus;
+    const quest = quests.find((q) => q.id === questId);
+
+    if (quest && quest.status !== newStatus) {
+      onMoveQuest(questId, newStatus);
+    }
+  }
+
+  return (
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      onDragEnd={handleDragEnd}
+    >
+      <div className="grid grid-cols-4 gap-4">
+        {KANBAN_COLUMNS.map((status) => (
+          <KanbanColumn
+            key={status}
+            status={status}
+            title={QUEST_STATUS_LABELS[status]}
+            quests={quests.filter((q) => q.status === status)}
+          />
+        ))}
+      </div>
+    </DndContext>
+  );
+}
