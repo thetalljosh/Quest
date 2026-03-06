@@ -8,7 +8,7 @@ export async function signInWithProvider(provider: string) {
 
 export async function signInWithEmail(formData: FormData) {
   const email = formData.get("email") as string;
-  await authSignIn("resend", { email, redirectTo: "/" });
+  await authSignIn("nodemailer", { email, redirectTo: "/" });
 }
 
 export async function signOutAction() {
